@@ -1,114 +1,44 @@
-# What Is Cas Reading 📖
+# What Is Andrew Reading? 📖
 
-A dead-simple website that publishes a **daily digest** of new papers, articles, bills,
-and policy updates on AI safety, governance, and risk — curated for
-[Stephen (Cas) Casper](https://stephencasper.com/).
+A focused research-paper digest curated for **Andrew Mendez** (`@interactivetech`) around architectures and agents that can learn, recur, adapt, and improve over time.
 
-Each morning, a script asks Claude (with web search) to compile ~10–20 entries, one per
-topic, each with a one-sentence summary and links. The newest digest shows at the top;
-older ones (last 60 days) are collapsible. Anything older than 60 days auto-deletes.
+The reading list is checked **every two days**. A new digest is published only when there are genuinely new or materially updated papers worth adding; quiet runs do not create empty updates.
 
-## How it works
+## Research tracks
+
+Each full digest contains three papers in each track:
+
+1. **Self-improving agents** — agents that accumulate experience, skills, feedback, critics, or other reusable mechanisms that improve future behavior.
+2. **Looped transformers** — recurrent-depth, universal, iterative, recursive, or looped Transformer architectures that reuse computation across depth or time.
+3. **Transformer architectures for continual learning** — memory, retrieval, adapters, parametric attention, fast weights, and other mechanisms for lifelong or continual adaptation.
+4. **Transformer architectures for self-improvement** — self-training, test-time learning/training, online weight updates, and architectures designed to improve from their own computation or incoming context.
+
+## Curation rules
+
+- **Papers only.** No news, policy, blog posts, or general articles.
+- Prefer genuinely new or materially revised work, then the strongest relevant recent/foundational work for the inaugural reading list.
+- Each entry links to a primary paper source such as arXiv, ACL Anthology, PMLR, OpenReview, or an author project page.
+- For every paper, the search also checks for an **official or author-linked GitHub repository**. A code link is included only when it can be verified; missing code links are intentionally left blank rather than guessed.
+- Previously listed papers are not repeated unless a new revision or release materially changes the work.
+
+## How the site works
+
+This repository is intentionally static:
 
 | Piece | What it does |
 |---|---|
-| `custom_prompt.txt` | The editorial brief Claude follows. **Edit this anytime** to change what gets covered. |
-| `generate_digest.py` | Calls Claude + web search, writes `data/<date>.json`, rebuilds `data/index.json`, prunes >60 days. |
-| `index.html` | The whole website. Plain static HTML/JS, no build step. Reads the JSON files. |
-| `data/` | One JSON file per day, plus `index.json` listing them. |
-| `.github/workflows/daily-digest.yml` | Runs the script every morning and commits the result (which redeploys the site). |
+| `index.html` | The GitHub Pages site; no build step or model API required. |
+| `data/YYYY-MM-DD.json` | One curated reading digest. |
+| `data/index.json` | Lists published digests newest-first. |
 
-The site is hosted free on **GitHub Pages**; the daily job runs free on **GitHub Actions**.
-Your only costs are the domain (~$10–15/year) and a few cents of Claude API usage per day.
+Research and curation are performed by ChatGPT's scheduled research task, which searches current public sources and writes verified results to this repository. There is **no Anthropic/Claude dependency, API key, or GitHub Actions paper-generation job** in this fork.
 
----
+## Hosting
 
-## Part 1 — Run it locally first
+Enable **GitHub Pages → Deploy from a branch → `main` → `/ (root)`** to publish the site at:
 
-You need Python 3.11+ and an Anthropic API key.
+`https://interactivetech.github.io/whatisandrewreading/`
 
-### 1a. Get an Anthropic API key
-1. Go to <https://console.anthropic.com/>, sign in, and open **Settings → API keys**.
-2. Create a key and copy it (starts with `sk-ant-...`).
-3. Add a little credit under **Billing** (a few dollars covers months of daily digests).
+## Provenance
 
-### 1b. Install and generate a digest
-```bash
-cd whatiscasreading
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-export ANTHROPIC_API_KEY="sk-ant-..."   # paste your key
-python generate_digest.py
-```
-This writes a fresh `data/<today>.json` and updates `data/index.json`.
-
-### 1c. Preview the site
-Open it through a local web server (opening the file directly won't work — browsers block
-`fetch()` from `file://`):
-```bash
-python3 -m http.server 8000
-```
-Then visit <http://localhost:8000>. Edit `custom_prompt.txt`, re-run the script, refresh.
-
----
-
-## Part 2 — Put it online (GitHub Pages + Actions, ~free)
-
-### 2a. Push to GitHub
-1. Create a free account at <https://github.com> if you don't have one.
-2. Create a new **empty** repository (e.g. `whatiscasreading`), public.
-3. From this folder:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/whatiscasreading.git
-   git push -u origin main
-   ```
-
-### 2b. Add your API key as a secret
-In the repo: **Settings → Secrets and variables → Actions → New repository secret**.
-- Name: `ANTHROPIC_API_KEY`
-- Value: your `sk-ant-...` key
-
-### 2c. Turn on GitHub Pages
-**Settings → Pages → Build and deployment → Source: “Deploy from a branch”**,
-branch `main`, folder `/ (root)`, then **Save**. After a minute your site is live at
-`https://<your-username>.github.io/whatiscasreading/`.
-
-### 2d. Check the daily job
-The workflow runs every morning on its own. To test it now: **Actions → Daily digest →
-Run workflow**. It generates a digest, commits it, and the commit redeploys Pages.
-
-> **Daylight-saving note:** GitHub cron is UTC-only. `0 10 * * *` lands at **6am during
-> EDT (summer)** and **5am during EST (winter)**. If you want it pinned to exactly 6am ET
-> year-round, add a second schedule line `- cron: "0 11 * * *"` and have the script no-op
-> when it's not ~6am ET — but for a morning reading list, an hour's drift is harmless.
-
----
-
-## Part 3 — A custom domain (whatiscasreading.net)
-
-1. Buy the domain from any registrar (Namecheap, Cloudflare, Porkbun — ~$10–15/yr).
-2. In the repo: **Settings → Pages → Custom domain**, enter `whatiscasreading.net`, Save.
-   GitHub creates a `CNAME` file in the repo.
-3. At your registrar's DNS settings, add these records (from
-   [GitHub's docs](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site)):
-   - Four `A` records for the apex domain → `185.199.108.153`, `185.199.109.153`,
-     `185.199.110.153`, `185.199.111.153`
-   - One `CNAME` record for `www` → `<your-username>.github.io`
-4. Wait for DNS to propagate (minutes to a few hours), then tick **Enforce HTTPS** in
-   Pages settings.
-
-That's it — the daily commit keeps the site fresh, and total running cost stays well
-under $1/day.
-
----
-
-## Tweaking it
-- **Change coverage:** edit `custom_prompt.txt`.
-- **Change retention:** edit `RETENTION_DAYS` in `generate_digest.py`.
-- **Change the look:** edit the `<style>` block in `index.html`.
-- **Change the run time:** edit the `cron` line in `.github/workflows/daily-digest.yml`.
+Forked from [thestephencasper/whatiscasreading](https://github.com/thestephencasper/whatiscasreading) and retargeted to Andrew's research interests.
