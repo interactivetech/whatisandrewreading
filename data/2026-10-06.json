@@ -1,4 +1,1 @@
-{
-  "date": "2026-10-06",
-  "entries": []
-}
+{"date":"2026-10-06","entries":[{"tag":"Self-improving agents","title":"MESH-Harness: Self-Improving Agent Harnesses via Bandit-Guided Compositional Evolution","summary":"MESH-Harness decomposes an agent harness into reusable functional modules and uses bandit-guided search to recombine and locally edit them from validation traces.","date":"2026-10-04","links":[{"title":"Paper (arXiv)","url":"https://arxiv.org/abs/2610.05300"}]}]}
